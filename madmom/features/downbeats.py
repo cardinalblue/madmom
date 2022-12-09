@@ -58,7 +58,7 @@ class RNNDownBeatProcessor(SequentialProcessor):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, nn_files=None, **kwargs):
         # pylint: disable=unused-argument
         from functools import partial
         from ..audio.signal import SignalProcessor, FramedSignalProcessor
@@ -68,6 +68,10 @@ class RNNDownBeatProcessor(SequentialProcessor):
             SpectrogramDifferenceProcessor)
         from ..ml.nn import NeuralNetworkEnsemble
         from ..models import DOWNBEATS_BLSTM
+
+        # choose the appropriate models
+        if nn_files is None:
+            nn_files = DOWNBEATS_BLSTM
 
         # define pre-processing chain
         sig = SignalProcessor(num_channels=1, sample_rate=44100)
@@ -88,7 +92,7 @@ class RNNDownBeatProcessor(SequentialProcessor):
         # stack the features and processes everything sequentially
         pre_processor = SequentialProcessor((sig, multi, np.hstack))
         # process the pre-processed signal with a NN ensemble
-        nn = NeuralNetworkEnsemble.load(DOWNBEATS_BLSTM, **kwargs)
+        nn = NeuralNetworkEnsemble.load(nn_files, **kwargs)
         # use only the beat & downbeat (i.e. remove non-beat) activations
         act = partial(np.delete, obj=0, axis=1)
         # instantiate a SequentialProcessor
