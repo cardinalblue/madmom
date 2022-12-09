@@ -23,7 +23,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
           CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_SKIP: pp* cp36-* cp37-* *-manylinux_i686
+          CIBW_SKIP: pp* cp36-* cp37-* *-_i686
 
       - uses: actions/upload-artifact@v3
         with:
