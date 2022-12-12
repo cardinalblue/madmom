@@ -91,7 +91,7 @@ class RNNBeatProcessor(SequentialProcessor):
         # define pre-processing chain
         sig = SignalProcessor(num_channels=1, sample_rate=44100)
         # process the multi-resolution spec & diff in parallel
-        multi = ParallelProcessor([])
+        tasks = []
         for frame_size in frame_sizes:
             frames = FramedSignalProcessor(frame_size=frame_size, **kwargs)
             stft = ShortTimeFourierTransformProcessor()  # caching FFT window
@@ -101,7 +101,8 @@ class RNNBeatProcessor(SequentialProcessor):
             diff = SpectrogramDifferenceProcessor(
                 diff_ratio=0.5, positive_diffs=True, stack_diffs=np.hstack)
             # process each frame size with spec and diff sequentially
-            multi.append(SequentialProcessor((frames, stft, filt, spec, diff)))
+            tasks.append(SequentialProcessor((frames, stft, filt, spec, diff)))
+        multi = ParallelProcessor(tasks, num_threads=len(tasks))
         # stack the features and processes everything sequentially
         pre_processor = SequentialProcessor((sig, multi, np.hstack))
         # process the pre-processed signal with a NN ensemble and the given
