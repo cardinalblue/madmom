@@ -206,7 +206,7 @@ class DBNDownBeatTrackingProcessor(Processor):
     def __init__(self, beats_per_bar, min_bpm=MIN_BPM, max_bpm=MAX_BPM,
                  num_tempi=NUM_TEMPI, transition_lambda=TRANSITION_LAMBDA,
                  observation_lambda=OBSERVATION_LAMBDA, threshold=THRESHOLD,
-                 correct=CORRECT, fps=None, **kwargs):
+                 correct=CORRECT, fps=None, pool=None, **kwargs):
         # pylint: disable=unused-argument
         # pylint: disable=no-name-in-module
         # expand arguments to arrays
@@ -236,8 +236,11 @@ class DBNDownBeatTrackingProcessor(Processor):
         # init a pool of workers (if needed)
         self.map = map
         if num_threads != 1:
-            import multiprocessing as mp
-            self.map = mp.Pool(num_threads).map
+            if pool is None:
+                import multiprocessing as mp
+                self.map = mp.Pool(num_threads).map
+            else:
+                self.map = pool.map
         # convert timing information to construct a beat state space
         min_interval = 60. * fps / max_bpm
         max_interval = 60. * fps / min_bpm

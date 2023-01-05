@@ -439,7 +439,7 @@ class ParallelProcessor(SequentialProcessor):
     """
     # pylint: disable=too-many-ancestors
 
-    def __init__(self, processors, num_threads=None):
+    def __init__(self, processors, num_threads=None, pool=None):
         # set the processing chain
         super(ParallelProcessor, self).__init__(processors)
         # number of threads
@@ -452,7 +452,10 @@ class ParallelProcessor(SequentialProcessor):
         #       whereas mp.Pool().map is not.
         self.map = map
         if min(len(processors), max(1, num_threads)) > 1:
-            self.map = mp.Pool(num_threads).map
+            if pool is None:
+                self.map = mp.Pool(num_threads).map
+            else:
+                self.map = pool.map
 
     def process(self, data, **kwargs):
         """
